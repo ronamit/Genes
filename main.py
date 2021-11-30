@@ -3,15 +3,21 @@ import numpy as np
 from torch import nn
 import torch.nn.functional as F
 import random
+import math
 
 n_genes = 8  # 1800
 n_pathways = 5  # 100
 
+
 class NeuralNetwork(nn.Module):
     def __init__(self, connect_mat):
         super(NeuralNetwork, self).__init__()
-        self.W1 = torch.randn(n_pathways, n_genes, requires_grad=True)
-        self.W2 = torch.randn(1, n_pathways, requires_grad=True)
+        #  Make the tensors part of the network:
+        self.W1 = nn.Parameter(torch.Tensor(n_pathways, n_genes))
+        self.W2 = nn.Parameter(torch.Tensor(1, n_pathways))
+        # PyTorch's default initialization:
+        nn.init.kaiming_uniform_(self.W1, a=math.sqrt(5))
+        nn.init.kaiming_uniform_(self.W2, a=math.sqrt(5))
         self.connect_mat = connect_mat
 
     def forward(self, x):
@@ -44,7 +50,7 @@ for i_sample in range(n_samples):
 model = NeuralNetwork(connect_mat)
 
 learning_rate = 1e-3
-optimizer = torch.optim.Adam([model.W1, model.W2], lr=learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 n_steps = 1000
 batch_size = 5
